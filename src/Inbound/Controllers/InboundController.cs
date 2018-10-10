@@ -1,4 +1,4 @@
-using Inbound.Util;
+using Inbound.Parsers;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
@@ -21,11 +21,9 @@ namespace Inbound.Controllers
         [Route("inbound")]
         public IActionResult InboundParse()
         {
-            InboundParser _inboundParser = new InboundParser(Request);
+            InboundWebhookParser _inboundParser = new InboundWebhookParser(Request.Body);
 
-            var keyValues = _inboundParser.KeyValues();
-
-            Log(keyValues);
+            var inboundEmail = _inboundParser.Parse();
 
             return Ok();
         }
