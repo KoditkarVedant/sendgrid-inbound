@@ -18,7 +18,7 @@ namespace Inbound.Tests.Parsers
             await File.OpenRead("sample_data/default_data.txt").CopyToAsync(stream);
             stream.Position = 0;
 
-            InboundWebhookParser parser = new InboundWebhookParser(stream);
+            var parser = new InboundWebhookParser(stream);
 
             InboundEmail inboundEmail = parser.Parse();
 
@@ -31,15 +31,15 @@ namespace Inbound.Tests.Parsers
             inboundEmail.Subject.ShouldBe("Testing non-raw");
             inboundEmail.SpamScore.ShouldBeNull();
             inboundEmail.Spf.ShouldBe("pass");
-            inboundEmail.Charsets.Except(new KeyValuePair<string, Encoding>[] {
+            inboundEmail.Attachments.Length.ShouldBe(0);
+            inboundEmail.Charsets.Except(new[] {
                 new KeyValuePair<string, Encoding>("to", Encoding.UTF8),
                 new KeyValuePair<string, Encoding>("html", Encoding.UTF8),
                 new KeyValuePair<string, Encoding>("subject", Encoding.UTF8),
                 new KeyValuePair<string, Encoding>("from", Encoding.UTF8),
                 new KeyValuePair<string, Encoding>("text", Encoding.UTF8)
             }).Count().ShouldBe(0);
-            inboundEmail.Attachments.Count().ShouldBe(0);
-            inboundEmail.Headers.Except(new KeyValuePair<string, string>[] {
+            inboundEmail.Headers.Except(new[] {
                 new KeyValuePair<string, string>("MIME-Version","1.0"),
                 new KeyValuePair<string, string>("Received","by 0.0.0.0 with HTTP; Wed, 10 Aug 2016 18:10:13 -0700 (PDT)"),
                 new KeyValuePair<string, string>("From","Example User <test@example.com>"),
@@ -55,9 +55,9 @@ namespace Inbound.Tests.Parsers
             inboundEmail.From.Email.ShouldBe("test@example.com");
             inboundEmail.From.Name.ShouldBe("Example User");
 
-            inboundEmail.Cc.Count().ShouldBe(0);
+            inboundEmail.Cc.Length.ShouldBe(0);
             inboundEmail.Envelope.From.ShouldBe("test@example.com");
-            inboundEmail.Envelope.To.Contains("inbound@inbound.example.com");
+            inboundEmail.Envelope.To.ShouldContain("inbound@inbound.example.com");
         }
     }
 }
