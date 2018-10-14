@@ -36,6 +36,9 @@
     <None Update="sample_data\raw_data_with_attachments.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="sample_data\raw_email_with_attachments.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
