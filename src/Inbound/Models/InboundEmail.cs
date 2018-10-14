@@ -131,6 +131,14 @@ namespace Inbound.Models
         /// The SPF.
         /// </value>
         public string Spf { get; set; }
+
+        /// <summary>
+        /// Get or sets the raw email received
+        /// </summary>
+        /// <value>
+        /// RAW EMAIL
+        /// </value>
+        public string RawEmail { get; set; }
     }
 
     
