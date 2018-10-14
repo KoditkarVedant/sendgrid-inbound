@@ -1,18 +1,18 @@
 ﻿using Inbound.Models;
 using Inbound.Parsers;
-using System.IO;
 using Shouldly;
-using Xunit;
 using System.Collections.Generic;
-using System.Text;
+using System.IO;
 using System.Linq;
+using System.Text;
+using Xunit;
 
 namespace Inbound.Tests.Parsers
 {
     public class InboundWebhookParserTests
     {
         [Fact]
-        public async void Default_payload()
+        public async void DefaultPayloadWithoutAttachments()
         {
             Stream stream = new MemoryStream();
             await File.OpenRead("sample_data/default_data.txt").CopyToAsync(stream);
@@ -23,22 +23,7 @@ namespace Inbound.Tests.Parsers
             InboundEmail inboundEmail = parser.Parse();
 
             inboundEmail.ShouldNotBeNull();
-            inboundEmail.Dkim.ShouldBe("{@sendgrid.com : pass}");
-            inboundEmail.Html.Trim().ShouldBe("<html><body><strong>Hello SendGrid!</body></html>");
-            inboundEmail.Text.Trim().ShouldBe("Hello SendGrid!");
-            inboundEmail.SenderIp.ShouldBe("0.0.0.0");
-            inboundEmail.SpamReport.ShouldBeNull();
-            inboundEmail.Subject.ShouldBe("Testing non-raw");
-            inboundEmail.SpamScore.ShouldBeNull();
-            inboundEmail.Spf.ShouldBe("pass");
-            inboundEmail.Attachments.Length.ShouldBe(0);
-            inboundEmail.Charsets.Except(new[] {
-                new KeyValuePair<string, Encoding>("to", Encoding.UTF8),
-                new KeyValuePair<string, Encoding>("html", Encoding.UTF8),
-                new KeyValuePair<string, Encoding>("subject", Encoding.UTF8),
-                new KeyValuePair<string, Encoding>("from", Encoding.UTF8),
-                new KeyValuePair<string, Encoding>("text", Encoding.UTF8)
-            }).Count().ShouldBe(0);
+
             inboundEmail.Headers.Except(new[] {
                 new KeyValuePair<string, string>("MIME-Version","1.0"),
                 new KeyValuePair<string, string>("Received","by 0.0.0.0 with HTTP; Wed, 10 Aug 2016 18:10:13 -0700 (PDT)"),
@@ -49,15 +34,41 @@ namespace Inbound.Tests.Parsers
                 new KeyValuePair<string, string>("Content-Type","multipart/alternative; boundary=001a113df448cad2d00539c16e89")
             }).Count().ShouldBe(0);
 
+            inboundEmail.Dkim.ShouldBe("{@sendgrid.com : pass}");
+
             inboundEmail.To[0].Email.ShouldBe("inbound@inbound.example.com");
             inboundEmail.To[0].Name.ShouldBe(string.Empty);
+
+            inboundEmail.Html.Trim().ShouldBe("<html><body><strong>Hello SendGrid!</body></html>");
+
+            inboundEmail.Text.Trim().ShouldBe("Hello SendGrid!");
 
             inboundEmail.From.Email.ShouldBe("test@example.com");
             inboundEmail.From.Name.ShouldBe("Example User");
 
-            inboundEmail.Cc.Length.ShouldBe(0);
+            inboundEmail.SenderIp.ShouldBe("0.0.0.0");
+
+            inboundEmail.SpamReport.ShouldBeNull();
+
             inboundEmail.Envelope.From.ShouldBe("test@example.com");
+            inboundEmail.Envelope.To.Length.ShouldBe(1);
             inboundEmail.Envelope.To.ShouldContain("inbound@inbound.example.com");
+
+            inboundEmail.Attachments.Length.ShouldBe(0);
+
+            inboundEmail.Subject.ShouldBe("Testing non-raw");
+
+            inboundEmail.SpamScore.ShouldBeNull();
+
+            inboundEmail.Charsets.Except(new[] {
+                new KeyValuePair<string, Encoding>("to", Encoding.UTF8),
+                new KeyValuePair<string, Encoding>("html", Encoding.UTF8),
+                new KeyValuePair<string, Encoding>("subject", Encoding.UTF8),
+                new KeyValuePair<string, Encoding>("from", Encoding.UTF8),
+                new KeyValuePair<string, Encoding>("text", Encoding.UTF8)
+            }).Count().ShouldBe(0);
+            
+            inboundEmail.Spf.ShouldBe("pass");
         }
     }
 }
