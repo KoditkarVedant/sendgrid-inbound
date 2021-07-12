@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HttpMultipartParser" Version="4.1.0" />
+    <PackageReference Include="HttpMultipartParser" Version="5.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
