@@ -14,9 +14,7 @@ namespace Inbound.Tests.IntegrationTests
 
         public InboundEndpointsTests()
         {
-            _applicationFactory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-            {
-            });
+            _applicationFactory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder => { });
         }
 
         [Fact]
@@ -26,7 +24,7 @@ namespace Inbound.Tests.IntegrationTests
 
             var client = _applicationFactory.CreateClient();
             var response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
             response.Content.Headers.ContentType!.MediaType.ShouldBe("text/html");
         }
 
@@ -51,7 +49,7 @@ namespace Inbound.Tests.IntegrationTests
 
             using var client = _applicationFactory.CreateClient();
             var response = await client.PostAsync(url, content);
-            response.EnsureSuccessStatusCode();
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         [Fact]
@@ -66,7 +64,7 @@ namespace Inbound.Tests.IntegrationTests
 
             using var client = _applicationFactory.CreateClient();
             var response = await client.PostAsync(url, content);
-            response.EnsureSuccessStatusCode();
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
     }
 }
