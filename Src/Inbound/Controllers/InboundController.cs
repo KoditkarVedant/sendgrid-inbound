@@ -1,8 +1,6 @@
 using Inbound.Parsers;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Inbound.Controllers
 {
@@ -19,22 +17,13 @@ namespace Inbound.Controllers
         // Process POST from Inbound Parse and print received data.
         [HttpPost]
         [Route("inbound")]
-        public IActionResult InboundParse()
+        public async Task<IActionResult> InboundParse()
         {
-            InboundWebhookParser _inboundParser = new InboundWebhookParser(Request.Body);
+            var inboundParser = await InboundWebhookParser.Create(Request.Body);
 
-            var inboundEmail = _inboundParser.Parse();
+            var inboundEmail = inboundParser.Parse();
 
             return Ok();
-        }
-
-        private void Log(IDictionary<string, string> keyValues)
-        {
-            if(keyValues == null)
-            {
-                return;
-            }
-            Console.WriteLine(JsonConvert.SerializeObject(keyValues));
         }
     }
 }

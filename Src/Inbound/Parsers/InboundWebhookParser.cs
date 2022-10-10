@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Inbound.Parsers
 {
@@ -15,10 +16,23 @@ namespace Inbound.Parsers
     {
         private readonly Stream _payload;
 
-        public InboundWebhookParser(Stream stream)
+        private InboundWebhookParser(Stream stream)
         {
-            _payload = new MemoryStream();
-            stream.CopyTo(_payload);
+            _payload = stream;
+        }
+        
+        // public InboundWebhookParser(Stream stream)
+        // {
+        //     _payload = new MemoryStream();
+        //     stream.CopyToAsync(_payload);
+        // }
+
+        public static async Task<InboundWebhookParser> Create(Stream stream)
+        {
+            var payload = new MemoryStream();
+            await stream.CopyToAsync(payload);
+            payload.Position = 0;
+            return new InboundWebhookParser(payload);
         }
 
         public InboundEmail Parse()
@@ -27,7 +41,9 @@ namespace Inbound.Parsers
             _payload.Position = 0;
 
             // Parse the multipart content received from SendGrid
-            var parser = new MultipartFormDataParser(_payload, Encoding.UTF8);
+            // var parser = new MultipartFormDataParser(_payload, Encoding.UTF8);
+            var parser = MultipartFormDataParser.Parse(_payload, Encoding.UTF8);
+
 
             // Convert the 'headers' from a string into array of KeyValuePair
             var rawHeaders = parser
@@ -45,7 +61,7 @@ namespace Inbound.Parsers
 
             // Raw email
             var rawEmail = parser.GetParameterValue("email", "");
-            
+
             // Combine the 'attachment-info' and Files into an array of Attachments
             var attachmentInfoAsJObject = JObject.Parse(parser.GetParameterValue("attachment-info", "{}"));
             var attachments = attachmentInfoAsJObject
@@ -67,7 +83,8 @@ namespace Inbound.Parsers
                 }).ToArray();
 
             // Convert the 'envelope' from a JSON string into a strongly typed object
-            var envelope = JsonConvert.DeserializeObject<InboundEmailEnvelope>(parser.GetParameterValue("envelope", "{}"));
+            var envelope =
+                JsonConvert.DeserializeObject<InboundEmailEnvelope>(parser.GetParameterValue("envelope", "{}"));
 
             // Convert the 'charset' from a string into array of KeyValuePair
             var charsetsAsJObject = JObject.Parse(parser.GetParameterValue("charsets", "{}"));
@@ -94,7 +111,8 @@ namespace Inbound.Parsers
                     return new
                     {
                         Encoding = encoding,
-                        Parser = new MultipartFormDataParser(_payload, encoding)
+                        Parser = MultipartFormDataParser.Parse(_payload, encoding)
+                        // Parser = new MultipartFormDataParser(_payload, encoding)
                     };
                 })
                 .Union(new[]

@@ -8,60 +8,64 @@ using Xunit;
 
 namespace Inbound.Tests.IntegrationTests
 {
-    public class InboundEndpointsTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class InboundEndpointsTests
     {
-        private readonly WebApplicationFactory<Startup> applicationFactory;
+        private readonly WebApplicationFactory<Program> _applicationFactory;
 
-        public InboundEndpointsTests(WebApplicationFactory<Startup> factory)
-            => applicationFactory = factory;
+        public InboundEndpointsTests()
+        {
+            _applicationFactory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+            {
+            });
+        }
 
         [Fact]
         public async Task Get_IndexPageReturnsSuccessAndCorrectContentType()
         {
-            const string URL = "/";
+            const string url = "/";
 
-            var client = applicationFactory.CreateClient();
-            var response = await client.GetAsync(URL);
+            var client = _applicationFactory.CreateClient();
+            var response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
-            response.Content.Headers.ContentType.MediaType.ShouldBe("text/html");
+            response.Content.Headers.ContentType!.MediaType.ShouldBe("text/html");
         }
 
         [Fact]
         public async Task Get_InboundEndpointReturnsNotFound()
         {
-            const string URL = "/inbound";
-            var client = applicationFactory.CreateClient();
-            var response = await client.GetAsync(URL);
-            response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+            const string url = "/inbound";
+            using var client = _applicationFactory.CreateClient();
+            var response = await client.GetAsync(url);
+            response.StatusCode.ShouldBe(HttpStatusCode.MethodNotAllowed);
         }
 
         [Fact]
         public async Task Post_InboundEndpointWithDefaultPayload()
         {
-            const string URL = "/inbound";
+            const string url = "/inbound";
             var data = File.ReadAllTextAsync("sample_data/default_data.txt").Result;
 
             var content = new StringContent(data);
             content.Headers.Clear();
             content.Headers.Add("Content-Type", "multipart/form-data; boundary=xYzZY");
 
-            var client = applicationFactory.CreateClient();
-            var response = await client.PostAsync(URL, content);
+            using var client = _applicationFactory.CreateClient();
+            var response = await client.PostAsync(url, content);
             response.EnsureSuccessStatusCode();
         }
 
         [Fact]
         public async Task Post_InboundEndpointWithRawPayloadWithAttachments()
         {
-            const string URL = "/inbound";
+            const string url = "/inbound";
             var data = File.ReadAllTextAsync("sample_data/raw_data_with_attachments.txt").Result;
 
             var content = new StringContent(data);
             content.Headers.Clear();
             content.Headers.Add("Content-Type", "multipart/form-data; boundary=xYzZY");
 
-            var client = applicationFactory.CreateClient();
-            var response = await client.PostAsync(URL, content);
+            using var client = _applicationFactory.CreateClient();
+            var response = await client.PostAsync(url, content);
             response.EnsureSuccessStatusCode();
         }
     }

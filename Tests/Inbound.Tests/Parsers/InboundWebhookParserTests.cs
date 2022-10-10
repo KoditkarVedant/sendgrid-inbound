@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Inbound.Tests.Parsers
@@ -12,13 +13,13 @@ namespace Inbound.Tests.Parsers
     public class InboundWebhookParserTests
     {
         [Fact]
-        public async void DefaultPayloadWithoutAttachments()
+        public async Task DefaultPayloadWithoutAttachments()
         {
             Stream stream = new MemoryStream();
             await File.OpenRead("sample_data/default_data.txt").CopyToAsync(stream);
             stream.Position = 0;
 
-            var parser = new InboundWebhookParser(stream);
+            var parser = await InboundWebhookParser.Create(stream);
 
             InboundEmail inboundEmail = parser.Parse();
 
@@ -72,13 +73,13 @@ namespace Inbound.Tests.Parsers
         }
 
         [Fact]
-        public async void RawPayloadWithAttachments()
+        public async Task RawPayloadWithAttachments()
         {
             Stream stream = new MemoryStream();
             await File.OpenRead("sample_data/raw_data_with_attachments.txt").CopyToAsync(stream);
             stream.Position = 0;
 
-            var parser = new InboundWebhookParser(stream);
+            var parser = await InboundWebhookParser.Create(stream);
 
             InboundEmail inboundEmail = parser.Parse();
 
